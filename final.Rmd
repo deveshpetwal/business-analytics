@@ -1,0 +1,390 @@
+---
+title: "Assignment_1"
+output:
+  pdf_document: default
+  html_notebook: default
+  html_document:
+    df_print: paged
+---
+
+Q1) a
+
+```{r}
+# Ans - 1 a)
+1 - pnorm(700, mean = 494, sd = 100)
+```
+
+Q1) b
+
+```{r}
+#Ans - 1 b)
+pnorm(450, mean = 494, sd = 100) - pnorm(350, mean = 494, sd = 100)
+```
+
+Q2)
+
+```{r}
+#Ans - 2
+
+qnorm(0.8665)
+# We enter the value we get into formula (x-mean)/sd = 1.109998
+Mean = 449 - (1.109998 * 36)
+
+
+Mean
+
+# We get mean = 409.0401
+pnorm (449, mean = 409.0401, sd = 36 )
+# Confirmed, we get the right probabilty so the answer is correct
+```
+
+Q3)
+
+```{r}
+#Ans - 3
+
+# Let x be Kent and y be Los_Angeles
+x = c(59, 68, 78, 60)
+y = c(90, 82, 78, 75)
+
+# Step 1 : Create a variable that stores xy
+xy = x * y
+
+# Step 2: Create a variable that stores x^2
+x2 = x^2
+
+# Step 3: Create a variable that stores y^2
+y2 = y^2
+
+# Step 4: Adding up all the numbers stored in the above variables
+
+sum_x = sum(x)
+sum_y = sum(y)
+sum_xy = sum(xy)
+sum_x2 = sum(x2)
+sum_y2 = sum(y2)
+
+# Step 5: Calculating the numerator for the formula
+
+num = (4 * sum_xy) - (sum_x * sum_y)
+
+# Step 6: Calculating the denominator
+
+denom = sqrt(((4 * sum_x2) - (sum_x * sum_x)) * ((4 * sum_y2) - (sum_y * sum_y)))
+
+# Step 7: Calculating correlation
+
+corr = num / denom
+
+corr
+
+# Confirmed, the answer is correct
+corr_ans = cor(x, y)
+corr_ans
+```
+
+Q4)
+
+```{r}
+#Ans - 4
+
+# Reading file
+a <- read.csv("C:/Users/BrandRely/Documents/Datasets/Online_Retail.csv")
+a
+
+library(dplyr)
+
+# Calculating ***Unique*** Transactions according to Countries (There are duplicate invoice numbers in the table, since every unique InvoiceNo = 1 Transactions)
+
+
+
+b <- a %>% group_by(Country) %>% summarise(Transactions = n_distinct(InvoiceNo))
+
+b
+
+# Total number of ***Unique Transactions***
+
+sum_tra <- sum(b$Transactions)
+
+sum_tra
+
+# Percentage of ***Unique Transactions*** for each country 
+
+b$per_tra <- (b$Transactions / sum_tra) * 100
+
+b
+
+# Countries accounting for more than 1% of total transactions
+
+f <- filter(b, per_tra > 1)
+
+f
+
+```
+
+
+Q5)
+
+```{r}
+#Ans - 5
+
+# TransactionValue = Quantity * UnitPrice
+
+
+a$TransactionValue <- a$Quantity * a$UnitPrice
+
+# Validating if the variable is added to dataframe
+colnames(a)
+
+```
+
+Q6)
+
+```{r}
+#Ans - 6
+
+# Sum of TransactionValue for each country
+
+Total_Spend <- a %>% group_by(Country) %>% summarise(Sum = sum(TransactionValue))
+
+Total_Spend
+
+# Countries with total transaction spend > 130000
+
+e <- filter(Total_Spend, Sum > 130000 )
+
+e
+
+```
+
+Q7)
+
+```{r}
+#Ans - 7
+
+# Operations as told to be done in Assignment
+
+Temp=strptime(a$InvoiceDate,format='%m/%d/%Y %H:%M',tz='GMT')
+
+a$New_Invoice_Date <- as.Date(Temp)
+
+a$New_Invoice_Date[20000]- a$New_Invoice_Date[10]
+
+a$Invoice_Day_Week= weekdays(a$New_Invoice_Date)
+
+a$New_Invoice_Hour = as.numeric(format(Temp, "%H"))
+
+a$New_Invoice_Month = as.numeric(format(Temp, "%m"))
+
+```
+
+```{r}
+
+# a)
+
+# Grouping according to Week
+
+total_tra_week <- a %>% group_by(Invoice_Day_Week) %>% summarise(Transactions = n_distinct(InvoiceNo))
+
+
+sum_week <- sum(total_tra_week$Transactions)
+
+
+# Percentage of transaction (number) according to week
+
+total_tra_week$percent_trans <- (total_tra_week$Transactions / sum_tra) * 100
+total_tra_week
+
+```
+
+
+```{r}
+# b)
+
+
+# Grouping transaction (by volume) according to week
+
+sum_value_tra <- a %>% group_by(Invoice_Day_Week) %>% summarise(Sum = sum(TransactionValue))
+
+# Total sum  of transactions values
+
+sum_week_val <- sum(sum_value_tra$Sum)
+
+# Percentage of transaction (value) according to week
+
+sum_value_tra$percent_trans_val <- (sum_value_tra$Sum / sum_week_val) * 100
+
+sum_value_tra
+
+```
+
+
+```{r}
+# c)
+
+# Grouping transaction (by volume) according to month
+
+sum_value_tra_mon <- a %>% group_by(New_Invoice_Month) %>% summarise(Sum = sum(TransactionValue))
+
+# Total sum of transactions values
+
+sum_mon_val <- sum(sum_value_tra_mon$Sum)
+
+# Percentage of transaction (value) according to week
+
+sum_value_tra_mon$percent_trans_val <- (sum_value_tra_mon$Sum / sum_mon_val) * 100
+
+sum_value_tra_mon
+
+```
+
+```{r}
+# d)
+
+# First filtering data for Australia
+
+aus_data <- count(a, New_Invoice_Date, Country ="Australia")
+
+# Maximum Transactions
+filter(aus_data, n==max(aus_data$n))
+
+```
+
+```{r}
+# e)
+
+no_hours <- count(a, New_Invoice_Hour)
+
+sort_asc <- no_hours[with(no_hours, order(n)), ] 
+
+sort_asc
+
+# From the table it is evident that there is least traffic between hours 18-20 as the sum is lowest then rest of all
+
+# Therefore ANS - 18-20
+
+```
+
+
+Q8)
+
+```{r}
+#Ans - 8
+
+# Filtering for Country == Germany
+
+ger <- filter(a, Country == "Germany")
+ger
+
+#Plotting Histogram
+
+hist(ger$TransactionValue, main="Germany Transaction Values", xlab="Transaction Value", xlim= c(-1000,1000),  col="darkmagenta", breaks = 10000)
+```
+
+Q9)
+
+```{r}
+#Ans - 9
+
+#Customer with highest number of Transactions
+
+cus_high <- a %>% group_by(CustomerID) %>% summarise(Transactions = n_distinct(InvoiceNo))
+
+# Since there are NA values which sum up to be highest we are first sorting in Desc & then choosing 2nd row
+sort_desc <- cus_high[with(cus_high, order(-Transactions)), ] 
+sort_desc[2,]
+
+
+# Most Valuable Customer
+
+Valuable <- a %>% group_by(CustomerID) %>% summarise(Sum = sum(TransactionValue))
+
+Valuable
+
+# Since there are NA values which sum up to be highest we are first sorting in Desc & then choosing 2nd row
+sort_val_desc <- Valuable[with(Valuable, order(-Sum)), ] 
+sort_val_desc [2,]
+
+
+```
+
+Q10)
+
+```{r}
+#Ans - 10
+
+# Finding Missing Value & Total length of the entries
+sapply(a, function(x) sum(is.na(x)))
+sapply(a, function(x) length(is.na(x)))
+
+# Percentage of missing values for each variable
+missing_val <- (sapply(a, function(x) sum(is.na(x)))/ sapply(a, function(x) length(is.na(x)))) * 100
+missing_val
+```
+
+Q11)
+
+```{r}
+#Ans - 11
+
+# Filter Data which has blank CustomerID
+blank_cusID <- filter(a, is.na(a$CustomerID))
+
+
+# Sorting the Data by missing CustomerID
+sort_blankID <- blank_cusID %>% group_by(Country) %>% summarise(CustomerID = n())                                                      
+sort_blankID                                                                        
+
+```
+
+Q12)
+```{r}
+#Ans - 12
+
+# We need to sort the Invoice dates according to the CustomerID & then use CustomerID to spot the difference in frequency of transactions according to date for each CustomerID by using diff() and then find the mean of all the differences by using mean()
+
+# Step 1 sort the data according to Customer  ID
+
+# Step 2 find the differnce in the transaction dates by sorting by InvoiceNo
+
+# step 3 find mean of all the differences
+
+
+# Note: I am still working on the code
+
+
+```
+
+Q13)
+```{r}
+#Ans - 13
+
+# First filtering the data required
+
+french_cus <- filter(a, Country == "France")
+
+# Filtering all negative values and then dividing the sum by the whole length
+
+return_rate <- (-1 * sum(filter(french_cus, Quantity < 0)$Quantity))/length(french_cus$Quantity) * 100
+
+return_rate
+```
+
+Q14)
+
+```{r}
+#Ans - 14
+
+prod_high_rev <-a %>% group_by(Description) %>% summarise(Sum = sum(TransactionValue))
+
+prod_high_rev[which.max(prod_high_rev$Sum), ]
+
+```
+
+Q15)
+
+```{r}
+#Ans - 15
+length(unique(a$CustomerID))
+```
+
