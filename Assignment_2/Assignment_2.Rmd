@@ -1,0 +1,240 @@
+---
+title: "Dev Submission for Assignment 2"
+output:
+  word_document: default
+  html_document:
+    df_print: paged
+  pdf_document: default
+---
+
+Installing necessary packages:
+
+```{r}
+#install.packages('mlbench')
+library(mlbench)
+#install.packages("lmtest")
+library(lmtest)
+#install.packages('mlbench')
+library(mlbench)
+```
+
+****Question 1
+
+```{r}
+set.seed(2017)
+X=runif(100)*10
+Y=X*4+3.45
+Y=rnorm(100)*0.29*Y+Y
+```
+
+****a)
+
+```{r}
+plot(X,Y,pch = 16, cex = 0.5, col = "blue")
+#By looking at the plot we see that there is a positive linear relationship between x & y. Therefore we can fit a linear model to explain Y based on X.
+```
+
+****b)
+
+```{r}
+lm <- lm(Y ~ X)
+summary(lm)
+lm$coefficients
+# Equation that explains Y based on X is  4.4655 = 3.6108 * X
+# For every one unit change in X, Y increases by 3.6108 units.
+# By R-squared value we know that 65% of the variance in Y was explained by the variance in X.
+```
+
+****c)
+
+```{r}
+cor(X,Y)
+(cor(X,Y))^2
+
+#R-squared is simply the correlation squared for a simple linear regression. 
+```
+
+****d)
+Reference taken: https://blog.minitab.com/blog/statistics-and-quality-data-analysis/violations-of-the-assumptions-for-linear-regression-the-trial-of-lionel-loosefit-day-1
+
+```{r}
+summary(X)
+summary(Y)
+summary(lm)
+
+dwtest(lm)
+
+plot(X,Y,xlim=c(2,75),xlab="Number of X Units",ylab="Number of Y Units",col="blue")
+abline(lsfit(X,Y),col="red")
+
+hist(lm$residuals, col="blue")
+qqline(lm$residuals, col="blue")
+qqnorm(lm$residuals, col="blue")
+hist(lm$fitted.values, col="blue")
+hist(lm$effects, col="blue")
+
+
+
+# 1. It is depicted in all the plots that there is a strong linear relationship between X and Y. 
+# 2. The residual plots  show that there is a good fit of the dataset in the simple linear model.
+# 3. As illustrated in the residual-effects plot, the mean residuals centered approximately on 0.
+# 4. Most points fall on the theoretical 45-degree line.
+# 5. Mean and median illustrate that the distribution is close to normal.
+
+# From all the above points and looking at the graphs we can say that it is appropriate to use linear regression for this case.
+```
+
+****Question 2
+
+****a)
+
+```{r}
+summary(mtcars$hp)
+summary(mtcars$wt)
+summary(mtcars$mpg)
+
+# Model to estimate hp by wt
+lmwt <- lm(hp ~ wt, data = mtcars)
+lmwt$coefficients
+summary(lmwt)
+
+# Model to estimate hp by mpg
+lmmpg <- lm(hp ~ mpg, data = mtcars)
+lmmpg$coefficients
+summary(lmmpg)
+
+hist(lmwt$residuals)
+hist(lmmpg$residuals)
+
+
+# R-squared for wt = 43.39%
+# R-squared for mpg = 60.24%
+
+# We can clearly see that mpg is more significant and explains 60% of the data.
+
+# Model to estimate hp by wt and mpg
+
+lmboth <- lm(hp ~ mpg + wt, data = mtcars)
+summary(lmboth)
+anova(lmboth)
+
+# We can clearly see that mpg is the most significant variable and wt is not statistically significant at all in estimating for hp.
+
+# Therefore we can say that Chris is right in thinking that mpg is a better estimator of the hp. 
+```
+
+****b)
+
+```{r}
+# Model to estimate hp by cyl and mpg
+lmnew <- lm(hp ~ mpg + cyl, data = mtcars)
+summary(lmnew)
+```
+
+****1)
+
+```{r}
+# Prdicting HP with mpg = 22 & cyl = 4
+
+predict(lmnew, data.frame(mpg = 22, cyl = 4))
+
+# We could also use the quation : hp = 54.067 + -2.775* mpg + 23.979* cyl
+```
+
+****2)
+
+```{r}
+# Constructing a 85% confidence interval:
+
+predict(lmnew, data.frame(mpg = 22, cyl = 4), interval = "prediction", level = 0.85)
+```
+
+****3)
+
+****a)
+
+```{r}
+data(BostonHousing)
+head(BostonHousing)
+
+# Model to estimate medv by crim, zn, ptratio & chas
+lmboston <- lm(medv ~ crim + zn + ptratio + chas, data = BostonHousing)
+summary(lmboston)
+lmboston$coefficients
+
+# R-squared is 35.99%, which means 64.01% of the data is not being explained by the model. Hence, it is  not a very good model.
+
+# All variables are statistically significant though.
+```
+
+****b)
+
+****1)
+
+```{r}
+
+aggregate(medv ~ chas, data = BostonHousing, FUN= "mean" )
+
+
+# Houses that do not bound river with chas = 0, avg median cost is $22,093.84
+
+# Houses that bound river with chas = 1, avg median cost is $28,440.00
+
+# Therefore the house which bounds Chas River is more expensive by:
+
+28440.00 - 22093.84
+```
+
+****2)
+```{r}
+# Keeping all the aspects of house identical other than ptratio.
+
+# Data frame with ptratio = 15
+data1 <- data.frame(crim = 0.00632, zn = 2, ptratio = 15, chas = 1)
+
+data1$chas = as.factor(data1$chas)
+
+predict(lmboston, data1)
+
+# Data frame with ptratio = 18
+data2 <- data.frame(crim = 0.00632, zn = 2,  ptratio = 18, chas = 1)
+
+data2$chas = as.factor(data2$chas)
+
+
+predict(lmboston, data2)
+
+diff <- predict(lmboston, data1) - predict(lmboston, data2)
+
+# House with ptratio = 15 is more expensive by:
+diff * 10000
+```
+
+****c)
+
+```{r}
+# Model to estimate medv by using all the variables present:
+
+lmbostonall <- lm(medv ~ crim + zn + indus + chas + nox + rm + age + dis + rad + tax + ptratio + b + lstat, data = BostonHousing)
+summary(lmbostonall)
+anova(lmbostonall)
+
+# We see that from "Pr(>|t|)" column, other than indus & age all the other variables are statistically important, those having "***" are the most important.
+
+# From "Pr(>F)" column by using anova we see that other than nox & rad all the other variables are statistically important, those having "***" are the most important. 
+```
+
+****d)
+
+```{r}
+anova(lmboston)
+
+# Order of importance of the four variables we used to create the "lmboston" model is as follows by looking at the F values and other attributes if the table below:
+
+# 1. crim
+# 2. ptratio
+# 3. zn
+# 4. chas
+
+```
+
